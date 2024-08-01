@@ -3,22 +3,22 @@ import Link from "next/link";
 
 export default function ItemList({ params }) {
   const [items, setItems] = useState([]);
-  const shopId = params.shopId;
+  const shop_id = params.shop_id;
 
   useEffect(() => {
     async function fetchItems() {
-      const response = await fetch(`/api/items?shop_id=${shopId}`);
+      const response = await fetch(`/api/items?shop_id=${shop_id}`);
       const data = await response.json();
       setItems(data);
     }
     fetchItems();
-  }, [items, shopId]);
+  }, [items, shop_id]);
 
   return (
     <ul>
       {items.map((item) => (
-        <li key={item.id}>
-          <Link href={`/shops/items/${shop.id}`}>{item.name}</Link>
+        <li key={item.item_id}>
+          <Link href={`/shops/items/${item.item_id}`}>{item.name}</Link>
         </li>
       ))}
     </ul>

@@ -11,9 +11,9 @@ export async function getServerSideProps() {
 const Shops = ({ shops }) => {
   <ul>
     {shops.map((shop) => (
-      <li key={shop.id}>
+      <li key={shop.shop_id}>
         {" "}
-        <Link href={`/shops/${shop.id}`}>{shop.name}</Link>
+        <Link href={`/shops/${shop.shop_id}`}>{shop.name}</Link>
       </li>
     ))}
   </ul>;
