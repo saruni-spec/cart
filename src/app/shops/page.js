@@ -13,7 +13,7 @@ const Shops = ({ shops }) => {
     {shops.map((shop) => (
       <li key={shop.id}>
         {" "}
-        <Link href={`/posts/${shop.id}`}>{shop.name}</Link>
+        <Link href={`/shops/${shop.id}`}>{shop.name}</Link>
       </li>
     ))}
   </ul>;

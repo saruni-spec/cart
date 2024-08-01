@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function ItemList({ params }) {
   const [items, setItems] = useState([]);
@@ -16,7 +17,9 @@ export default function ItemList({ params }) {
   return (
     <ul>
       {items.map((item) => (
-        <li key={item.id}>{item.name}</li>
+        <li key={item.id}>
+          <Link href={`/shops/items/${shop.id}`}>{item.name}</Link>
+        </li>
       ))}
     </ul>
   );
