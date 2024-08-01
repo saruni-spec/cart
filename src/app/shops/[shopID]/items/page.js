@@ -7,7 +7,7 @@ export default function ItemList({ params }) {
 
   useEffect(() => {
     async function fetchItems() {
-      const response = await fetch(`/api/inventory?shop_id=${shopId}`);
+      const response = await fetch(`/api/i?shop_id=${shopId}`);
       const data = await response.json();
       setItems(data);
     }

@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-export default function ItemList({ params }) {
+export default function Shop({ params }) {
   const [items, setItems] = useState([]);
   const shop_id = params.shop_id;
 
   useEffect(() => {
     async function fetchItems() {
-      const response = await fetch(`/api/items?shop_id=${shop_id}`);
+      const response = await fetch(`/api/inventory?shop_id=${shop_id}`);
       const data = await response.json();
       setItems(data);
     }

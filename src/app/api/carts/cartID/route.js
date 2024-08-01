@@ -1,19 +1,8 @@
 // pages/api/items.js
 import pool from "@/db";
+import { NextResponse } from "next/server";
 
-export default async function handler(req, res) {
-  switch (req.method) {
-    case "GET":
-      return getCartItems(req, res);
-    case "POST":
-      return addCartItems(req, res);
-    default:
-      res.setHeader("Allow", ["GET", "POST"]);
-      res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-}
-
-async function getCartItems(req, res) {
+export async function GET(req) {
   const { cart_id } = req.query; // Extract shop_id from query parameters
 
   if (!cart_id) {
@@ -25,16 +14,19 @@ async function getCartItems(req, res) {
       "SELECT * FROM cart_item WHERE cart_id = $1",
       [cart_id]
     );
-    res.status(200).json(rows);
+    return NextResponse.json(rows, { status: 200 });
   } catch (error) {
-    res.status(500).json({ error: "Error fetching cart items" });
+    return NextResponse.json(
+      { error: "Error fetching cart items" },
+      { status: 500 }
+    );
   }
 }
 
-async function addCartItems(req, res) {
-  const { Item_ID, Quantity, Price } = req.body;
-
+export async function POST(req, res) {
   try {
+    const body = await req.json();
+    const { Item_ID, Quantity, Price } = body;
     const query = `
       INSERT INTO cart_items (Item_ID ,
     Quantity ,
@@ -48,9 +40,12 @@ async function addCartItems(req, res) {
     const values = [Item_ID, Quantity, Price];
 
     const { rows } = await pool.query(query, values);
-    res.status(201).json(rows[0]);
+    return NextResponse.json(rows[0], { status: 200 });
   } catch (error) {
     console.error("Error adding cart_items:", error);
-    res.status(500).json({ error: "Error adding cart_items" });
+    return NextResponse.json(
+      { error: "Error adding cart_items" },
+      { status: 500 }
+    );
   }
 }

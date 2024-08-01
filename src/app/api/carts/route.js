@@ -1,31 +1,22 @@
 // pages/api/items.js
 import pool from "@/db";
+import { NextResponse } from "next/server";
 
-export default async function handler(req, res) {
-  switch (req.method) {
-    case "GET":
-      return getCart(req, res);
-    case "POST":
-      return addCart(req, res);
-    default:
-      res.setHeader("Allow", ["GET", "POST"]);
-      res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-}
-
-async function getCart(req, res) {
+export async function GET(req) {
   try {
     const { rows } = await pool.query("SELECT * FROM cart");
-    res.status(200).json(rows);
+    return NextResponse.json(rows, { status: 200 });
   } catch (error) {
-    res.status(500).json({ error: "Error fetching cart" });
+    console.error("Error fetching cart:", error);
+    return NextResponse.json({ error: "Error fetching cart" }, { status: 500 });
   }
 }
 
-async function addCart(req, res) {
-  const { Buyer_ID, Store_ID, Date, Time, Total_price } = req.body;
-
+export async function POST(req) {
   try {
+    const body = await req.json();
+    const { Buyer_ID, Store_ID, Date, Time, Total_price } = body;
+
     const query = `
       INSERT INTO cart (Buyer_ID ,
     Store_ID ,
@@ -40,9 +31,9 @@ async function addCart(req, res) {
     const values = [Buyer_ID, Store_ID, Date, Time, Total_price];
 
     const { rows } = await pool.query(query, values);
-    res.status(201).json(rows[0]);
+    return NextResponse.json(rows[0], { status: 201 });
   } catch (error) {
     console.error("Error adding cart:", error);
-    res.status(500).json({ error: "Error adding cart" });
+    return NextResponse.json({ error: "Error adding cart" }, { status: 500 });
   }
 }

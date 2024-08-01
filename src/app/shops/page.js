@@ -1,22 +1,24 @@
 import React from "react";
 import Link from "next/link";
 
-export async function getServerSideProps() {
+async function getShops() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shops`);
-  const shops = await res.json();
-
-  return { props: { items } };
+  if (!res.ok) {
+    throw new Error("Failed to fetch shops");
+  }
+  return res.json();
 }
 
-const Shops = ({ shops }) => {
-  <ul>
-    {shops.map((shop) => (
-      <li key={shop.shop_id}>
-        {" "}
-        <Link href={`/shops/${shop.shop_id}`}>{shop.name}</Link>
-      </li>
-    ))}
-  </ul>;
-};
+export default async function Shops() {
+  const shops = await getShops();
 
-export default Shops;
+  return (
+    <ul>
+      {shops.map((shop) => (
+        <li key={shop.shop_id}>
+          <Link href={`/shops/${shop.shop_id}`}>{shop.name}</Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
