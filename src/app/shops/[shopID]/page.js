@@ -1,24 +1,23 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-export default function ItemList({ params }) {
+export default function Shop({ params }) {
   const [items, setItems] = useState([]);
-  const shopId = params.shopId;
+  const shop_id = params.shop_id;
 
   useEffect(() => {
     async function fetchItems() {
-      const response = await fetch(`api fetch for specific shop`);
-      const data = await response.json();
+      const data = "fetch items in shop";
       setItems(data);
     }
     fetchItems();
-  }, [items, shopId]);
+  }, [items, shop_id]);
 
   return (
     <ul>
       {items.map((item) => (
-        <li key={item.id}>
-          <Link href={`/shops/items/${shop.id}`}>{item.name}</Link>
+        <li key={item.item_id}>
+          <Link href={`/shops/items/${item.item_id}`}>{item.name}</Link>
         </li>
       ))}
     </ul>
