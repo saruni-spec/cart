@@ -1,21 +1,21 @@
 import React from "react";
 import Link from "next/link";
 
-export async function getServerSideProps() {
-  const shops = "fetch data";
-
-  return { props: { items } };
+async function getShops() {
+  const shops = "get shops api";
+  return shops;
 }
 
-const Shops = ({ shops }) => {
-  <ul>
-    {shops.map((shop) => (
-      <li key={shop.shop_id}>
-        {" "}
-        <Link href={`/shops/${shop.shop_id}`}>{shop.name}</Link>
-      </li>
-    ))}
-  </ul>;
-};
+export default async function Shops() {
+  const shops = await getShops();
 
-export default Shops;
+  return (
+    <ul>
+      {shops.map((shop) => (
+        <li key={shop.shop_id}>
+          <Link href={`/shops/${shop.shop_id}`}>{shop.name}</Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
