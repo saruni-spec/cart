@@ -1,4 +1,4 @@
-// pages/api/items.js
+// pages/api/item.js
 import pool from "@/db";
 
 export default async function handler(req, res) {

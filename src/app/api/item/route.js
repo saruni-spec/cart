@@ -1,4 +1,4 @@
-// pages/api/items.js
+// pages/api/item.js
 import pool from "@/db";
 import { NextResponse } from "next/server";
 

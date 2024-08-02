@@ -1,9 +1,9 @@
+"use client";
 import React, { useState } from "react";
 import { addFormToDatabase } from "../myFunctions/funtions";
-import { set } from "mongoose";
 
 const AddItem = ({ setRefresh }) => {
-  const ROUTE = "items";
+  const ROUTE = "item";
   const [message, setMessage] = useState(null);
 
   const handleSubmit = (e) => {

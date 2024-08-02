@@ -1,4 +1,4 @@
-// pages/api/items.js
+// pages/api/item.js
 import pool from "@/db";
 import { NextResponse } from "next/server";
 
@@ -13,9 +13,9 @@ export async function GET(req) {
     // Join the ORDER table with the CART table to get the shop_id
     const query = `
       SELECT o.* 
-      FROM "ORDER" o
+      FROM checkout o
       JOIN CART c ON o.cart_id = c.cart_id
-      WHERE c.store_id = $1
+      WHERE c.shop_id = $1
     `;
 
     const { rows } = await pool.query(query, [shop_id]);

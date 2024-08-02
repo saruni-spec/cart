@@ -7,7 +7,7 @@ const ItemList = ({ refresh, setRefresh, selectItem = () => {} }) => {
   const [items, setItems] = useState([]);
 
   async function getItems() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/items`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/item`);
     if (!res.ok) {
       throw new Error("Failed to fetch items");
     }

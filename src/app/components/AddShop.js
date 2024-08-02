@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { addFormToDatabase } from "../myFunctions/funtions";
 
 const AddShop = () => {
-  const ROUTE = "shops";
+  const ROUTE = "shop";
   const [message, setMessage] = useState("");
 
   const handleSubmit = (e) => {

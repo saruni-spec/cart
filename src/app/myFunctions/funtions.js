@@ -26,3 +26,17 @@ export const addFormToDatabase = async (Data, route, setMessage) => {
     );
   }
 };
+
+export const fetchItemsFromDatabase = async (route) => {
+  try {
+    const response = await fetch(`/api/${route}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch items");
+    }
+    const itemsData = await response.json();
+    return itemsData;
+  } catch (error) {
+    console.error("Error fetching items", error.message);
+    return [];
+  }
+};
