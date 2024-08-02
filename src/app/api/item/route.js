@@ -24,55 +24,38 @@ export async function GET(req) {
 export async function POST(req, res) {
   try {
     const body = await req.json();
-    const {
-      category_id,
-      name,
-      quality,
-      brand,
-      type,
-      quantity,
-      price,
-      description,
-      image_URL,
-    } = body;
-
-    const parsedQuantity = parseInt(quantity, 10);
-    const parsedPrice = parseFloat(price);
+    const { category_id, name, brand, type, quantity, description, image_url } =
+      body;
 
     const query = `
-      INSERT INTO item ( category_id,
+      INSERT INTO item ( 
+      category_id,
     name,
-    quality,
     brand,
     type,
     quantity,
-    price,
     description,
-    image_URL
+    image_url
 ) 
-      VALUES ($1, $2, $3,$4,$5,$6,$7,$8,$9) 
+      VALUES ($1, $2, $3,$4,$5,$6,$7) 
       RETURNING *
     `;
     const values = [
       category_id,
       name,
-      quality,
+
       brand,
       type,
-      parsedQuantity,
-      parsedPrice,
+      quantity,
 
       description,
-      image_URL,
+      image_url,
     ];
 
     const { rows } = await pool.query(query, values);
     return NextResponse.json(rows[0], { status: 201 });
   } catch (error) {
-    console.error("Error adding item to inventory:", error);
-    return NextResponse.json(
-      { error: "Error adding item to inventory" },
-      { status: 500 }
-    );
+    console.error("Error adding items:", error);
+    return NextResponse.json({ error: "Error adding items" }, { status: 500 });
   }
 }

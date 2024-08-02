@@ -27,7 +27,13 @@ export default function Shop() {
           <>
             {items.map((item) => (
               <li key={item.item_id}>
-                <Link href={`/shops/items/${item.item_id}`}>{item.name}</Link>
+                <p>{item.name}</p>
+                <p>Quantity: {JSON.stringify(item.quantity)}</p>
+                <p>{item.brand}</p>
+
+                <p>{item.description}</p>
+                <p>{item.image_url}</p>
+                <p>{item.price}</p>
               </li>
             ))}
           </>

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
-const ShopList = () => {
+const ShopList = ({ nextRoute }) => {
   const [shops, setShops] = useState([]);
 
   async function getShops() {
@@ -23,7 +23,7 @@ const ShopList = () => {
     <ul>
       {shops.map((shop) => (
         <li key={shop.shop_id}>
-          <Link href={`/admin/${shop.shop_id}?shop_id=${shop.shop_id}`}>
+          <Link href={`/${nextRoute}/${shop.shop_id}?shop_id=${shop.shop_id}`}>
             {shop.name}
           </Link>
         </li>

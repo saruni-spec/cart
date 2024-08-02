@@ -8,6 +8,7 @@ import AddItems from "./addItems/page";
 
 export default function AdminPanel() {
   const [page, setPage] = useState("");
+  const ROUTE = "admin";
 
   return (
     <div>
@@ -31,7 +32,7 @@ export default function AdminPanel() {
 
       {page === "addShop" && <AddShop />}
       {page === "addItems" && <AddItems />}
-      {page === "inventory" && <ShopList />}
+      {page === "inventory" && <ShopList nextRoute={ROUTE} />}
     </div>
   );
 }

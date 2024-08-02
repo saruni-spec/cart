@@ -15,7 +15,7 @@ export async function GET(req) {
 
   try {
     const query = `
-      SELECT i.item_id, i.name, i.quality, i.brand, i.type, i.price, i.description, i.image_url, inv.quantity
+      SELECT i.item_id, i.name, i.brand, i.type,  i.description, i.image_url, inv.quantity,inv.price
       FROM INVENTORY inv
       JOIN ITEM i ON inv.item_id = i.item_id
       WHERE inv.shop_id = $1
