@@ -16,7 +16,10 @@ export default async function Shops() {
     <ul>
       {shops.map((shop) => (
         <li key={shop.shop_id}>
-          <Link href={`/shops/${shop.shop_id}`}>{shop.name}</Link>
+          -{shop.shop_id}
+          <Link href={`/shops/${shop.shop_id}?shop_id=${shop.shop_id}`}>
+            {shop.name}
+          </Link>
         </li>
       ))}
     </ul>

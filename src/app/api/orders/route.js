@@ -22,7 +22,8 @@ export async function GET(req) {
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { message: "No orders found for this shop" },
+        null,
+        { message: "Empty dataset" },
         { status: 404 }
       );
     }

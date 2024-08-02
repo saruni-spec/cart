@@ -1,42 +1,16 @@
 import React, { useState } from "react";
+import { addFormToDatabase } from "../myFunctions/funtions";
 
 const AddShop = () => {
+  const ROUTE = "shops";
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setMessage(""); // Clear any previous messages
-
     const formData = new FormData(e.target);
-    const shopData = Object.fromEntries(formData);
-
-    try {
-      const response = await fetch("/api/shops", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(shopData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          `Failed to add shop: ${response.status} ${
-            response.statusText
-          }. ${JSON.stringify(errorData)}`
-        );
-      }
-
-      const result = await response.json();
-      setMessage("Shop added successfully!");
-      e.target.reset(); // Reset the form
-    } catch (error) {
-      console.error("Error adding shop:", error.message);
-      setMessage(
-        `Failed to add shop. Please try again. Error: ${error.message}`
-      );
-    }
+    const Data = Object.fromEntries(formData);
+    addFormToDatabase(Data, ROUTE, setMessage);
+    e.target.reset(); // Reset the form
   };
 
   return (

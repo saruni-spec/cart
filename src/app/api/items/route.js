@@ -1,0 +1,78 @@
+// pages/api/items.js
+import pool from "@/db";
+import { NextResponse } from "next/server";
+
+export async function GET(req) {
+  try {
+    const { rows } = await pool.query("SELECT * FROM item ");
+
+    if (rows.length === 0) {
+      return NextResponse.json(
+        null,
+        { message: "Items not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(rows, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    return NextResponse.json({ error: "Error fetching item" }, { status: 500 });
+  }
+}
+
+export async function POST(req, res) {
+  try {
+    const body = await req.json();
+    const {
+      category_id,
+      name,
+      quality,
+      brand,
+      type,
+      quantity,
+      price,
+      description,
+      image_URL,
+    } = body;
+
+    const parsedQuantity = parseInt(quantity, 10);
+    const parsedPrice = parseFloat(price);
+
+    const query = `
+      INSERT INTO item ( category_id,
+    name,
+    quality,
+    brand,
+    type,
+    quantity,
+    price,
+    description,
+    image_URL
+) 
+      VALUES ($1, $2, $3,$4,$5,$6,$7,$8,$9) 
+      RETURNING *
+    `;
+    const values = [
+      category_id,
+      name,
+      quality,
+      brand,
+      type,
+      parsedQuantity,
+      parsedPrice,
+
+      description,
+      image_URL,
+    ];
+
+    const { rows } = await pool.query(query, values);
+    return NextResponse.json(rows[0], { status: 201 });
+  } catch (error) {
+    console.error("Error adding item to inventory:", error);
+    return NextResponse.json(
+      { error: "Error adding item to inventory" },
+      { status: 500 }
+    );
+  }
+}

@@ -1,12 +1,16 @@
-// pages/api/items.js
+// pages/api/inventory.js
 import pool from "@/db";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
-  const { shop_id } = req.query; // Extract shop_id from query parameters
+  const { searchParams } = new URL(req.url);
+  const shop_id = searchParams.get("shop_id");
 
   if (!shop_id) {
     return NextResponse.json({ error: "shop_id is required" }, { status: 400 });
+  } else {
+    console.log(shop_id, "this is the shop id");
+    console.log(req.url, "this is the req.url");
   }
 
   try {
@@ -21,7 +25,8 @@ export async function GET(req) {
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { message: "No items found for this shop" },
+        null,
+        { message: "Empty dataset" },
         { status: 404 }
       );
     }
@@ -39,14 +44,14 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { shopId, quantity, price } = body;
+    const { item_id, shop_id, quantity, price } = body;
 
     const query = `
-      INSERT INTO inventory (Shop_Id,Quantity,Price) 
-      VALUES ($1, $2, $3) 
+      INSERT INTO inventory (item_id,shop_Id,quantity,price) 
+      VALUES ($1, $2, $3,$4) 
       RETURNING *
     `;
-    const values = [shopId, quantity, price];
+    const values = [item_id, shop_id, quantity, price];
 
     const { rows } = await pool.query(query, values);
     return NextResponse.json(rows[0], { status: 201 });
