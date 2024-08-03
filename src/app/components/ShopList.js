@@ -21,13 +21,17 @@ const ShopList = ({ nextRoute }) => {
 
   return (
     <ul>
-      {shops.map((shop) => (
-        <li key={shop.shop_id}>
-          <Link href={`/${nextRoute}/${shop.shop_id}?shop_id=${shop.shop_id}`}>
-            {shop.name}
-          </Link>
-        </li>
-      ))}
+      {shops &&
+        shops.map((shop) => (
+          <li key={shop.shop_id}>
+            <Link
+              href={`/${nextRoute}/${shop.shop_id}?shop_id=${shop.shop_id}`}
+            >
+              {shop.name}
+            </Link>
+          </li>
+        ))}
+      {!shops && <>No shops Available</>}
     </ul>
   );
 };

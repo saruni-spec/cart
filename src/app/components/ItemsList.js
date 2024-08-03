@@ -33,6 +33,7 @@ const ItemList = ({ refresh, setRefresh, selectItem = () => {} }) => {
             <p>{item.quality}</p>
             <p>Quantity: {JSON.stringify(item.quantity)}</p>
             <p>{item.description}</p>
+            <p>Type:{item.type}</p>
             <p>{item.image_url}</p>
           </li>
         ))
