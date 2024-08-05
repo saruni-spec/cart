@@ -15,12 +15,27 @@ export const CartProvider = ({ children }) => {
   const { token } = useUser();
 
   const syncCart = async () => {
+    console.log("syncing cart checking token");
     if (token) {
+      console.log("syncing cart");
+      await addFormToDatabase(
+        cart,
+        "cart/buyer",
+
+        token
+      );
+    } else {
+      const newToken = localStorage.getItem("token");
+      if (!newToken) {
+        return;
+      }
+
+      console.log("syncing cart with new token");
       await addFormToDatabase(
         { cartItems: cart },
         "cart/buyer",
-        () => {},
-        token
+
+        newToken
       );
     }
   };

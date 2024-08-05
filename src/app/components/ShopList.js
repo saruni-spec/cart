@@ -1,22 +1,21 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { fetchItemsFromDatabase } from "../myFunctions/funtions";
+import { useQuery } from "react-query";
+
+const ROUTE = "shop";
+
+async function getShops() {
+  const shopsData = await fetchItemsFromDatabase(ROUTE);
+  console.log("fetching shops");
+  return shopsData;
+}
 
 const ShopList = ({ nextRoute }) => {
-  const ROUTE = "shop";
-  const [shops, setShops] = useState([]);
-
-  async function getShops() {
-    const shopsData = await fetchItemsFromDatabase(ROUTE);
-
-    setShops(shopsData);
-  }
-
-  useEffect(() => {
-    getShops();
-  }, []);
+  const { data: shops } = useQuery("shops", getShops, {
+    staleTime: 60000, // Cache the data for 1 minute
+    refetchOnWindowFocus: false, // Prevent refetching when the window regains focus
+  });
 
   return (
     <ul>

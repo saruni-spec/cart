@@ -1,26 +1,21 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { fetchItemsFromDatabase } from "../myFunctions/funtions";
+import { useQuery } from "react-query";
+
+const ROUTE = "item";
+
+async function getItems() {
+  const itemsData = await fetchItemsFromDatabase(ROUTE);
+  console.log("fetching items");
+  return itemsData;
+}
 
 const ItemList = ({ refresh, setRefresh, selectItem = () => {} }) => {
-  const ROUTE = "item";
-  const [items, setItems] = useState([]);
-
-  async function getItems() {
-    const itemsData = await fetchItemsFromDatabase(ROUTE);
-
-    console.log("getting items");
-    setItems(itemsData);
-  }
-
-  useEffect(() => {
-    if (refresh) {
-      getItems();
-      setRefresh(false);
-    }
-  }, []);
+  const { data: items } = useQuery("items", getItems, {
+    staleTime: 60000, // Cache the data for 1 minute
+    refetchOnWindowFocus: false, // Prevent refetching when the window regains focus
+  });
 
   return (
     <ul className="itemList">

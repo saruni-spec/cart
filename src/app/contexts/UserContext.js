@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useState, useContext } from "react";
+import { addFormToDatabase } from "../myFunctions/funtions";
 
 const UserContext = createContext();
 
@@ -11,7 +12,7 @@ export const UserProvider = ({ children }) => {
     // Your sign in logic here
     const newToken = await addFormToDatabase(data, route);
     setToken(newToken.DataFetched);
-    localStorage.setItem("token", newToken);
+    localStorage.setItem("token", newToken.DataFetched);
     return newToken.message;
   };
 

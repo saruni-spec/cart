@@ -22,7 +22,7 @@ export const addFormToDatabase = async (Data, route, token) => {
     return result;
   } catch (error) {
     console.error(`Error adding ${route}`, error.message);
-    setMessage(`Failed  ${route}. Please try again. Error: ${error.message}`);
+
     return { message: "Failed,Please Try Again", DataFetched: [] };
   }
 };

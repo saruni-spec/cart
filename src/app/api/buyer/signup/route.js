@@ -47,12 +47,12 @@ export async function POST(req, res) {
 
     // Hash the password using Argon2
     const hashedPassword = await argon2.hash(password);
-    const isAuthenticated = true;
+
     const query = `
       INSERT INTO buyer (
         firstname, lastname, email, phone, password, location, address
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7,$8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
     const values = [
@@ -63,7 +63,6 @@ export async function POST(req, res) {
       hashedPassword,
       location,
       address,
-      isAuthenticated,
     ];
 
     const { rows } = await pool.query(query, values);

@@ -7,31 +7,33 @@ const authenticateToken = (req) => {
   const authHeader = req.headers.get("Authorization");
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token == null) return null;
+  if (!token) {
+    return null;
+  }
 
   try {
     return jwt.verify(token, process.env.JWT_SECRET);
-  } catch (e) {
+  } catch (error) {
+    console.error("Token verification failed:", error.message);
     return null;
   }
 };
 
 export async function GET(req) {
   const user = authenticateToken(req);
+
   if (!user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-    });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const buyer_id = user.buyer_id;
 
   if (!buyer_id) {
-    return new Response(JSON.stringify({ error: "buyer_id is required" }), {
-      status: 400,
-    });
+    return NextResponse.json(
+      { error: "buyer_id is required" },
+      { status: 400 }
+    );
   }
-
   try {
     // First, get the cart_id for the given buyer_id
     const cartResult = await pool.query(
@@ -110,6 +112,7 @@ export async function POST(req) {
     let cart_id;
     if (cartRows.length === 0) {
       // Create a new cart if one doesn't exist
+
       const createCartQuery = `
         INSERT INTO CART (Buyer_ID, Store_ID, Date, Time, Total_price, Status)
         VALUES ($1, $2, CURRENT_DATE, CURRENT_TIME, 0, 'active')
@@ -119,11 +122,11 @@ export async function POST(req) {
         buyer_id,
         store_id,
       ]);
-      cart_id = newCartRows[0].Cart_ID;
+      cart_id = newCartRows[0].cart_id;
     } else {
-      cart_id = cartRows[0].Cart_ID;
+      cart_id = cartRows[0].cart_id;
     }
-
+    console.log(cart_id, "cart id in cart server");
     // Prepare the query for adding items
     const addItemQuery = `
   INSERT INTO CART_ITEM (Cart_ID, Item_ID, Quantity)
