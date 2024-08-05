@@ -14,7 +14,10 @@ export async function GET(req) {
       );
     }
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(
+      { message: "data fetched succesfully", DataFetched: rows },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching item:", error);
     return NextResponse.json({ error: "Error fetching item" }, { status: 500 });
@@ -24,8 +27,16 @@ export async function GET(req) {
 export async function POST(req, res) {
   try {
     const body = await req.json();
-    const { category_id, name, brand, type, quantity, description, image_url } =
-      body;
+    const {
+      category_id,
+      name,
+      brand,
+      type,
+      size,
+      measurement,
+      description,
+      image_url,
+    } = body;
 
     const query = `
       INSERT INTO item ( 
@@ -33,11 +44,11 @@ export async function POST(req, res) {
     name,
     brand,
     type,
-    quantity,
+    size,measurement,
     description,
     image_url
 ) 
-      VALUES ($1, $2, $3,$4,$5,$6,$7) 
+      VALUES ($1, $2, $3,$4,$5,$6,$7,$8) 
       RETURNING *
     `;
     const values = [
@@ -46,14 +57,18 @@ export async function POST(req, res) {
 
       brand,
       type,
-      quantity,
+      size,
+      measurement,
 
       description,
       image_url,
     ];
 
     const { rows } = await pool.query(query, values);
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json(
+      { message: "data fetched succesfully", DataFetched: rows[0] },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error adding items:", error);
     return NextResponse.json({ error: "Error adding items" }, { status: 500 });

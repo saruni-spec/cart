@@ -3,7 +3,7 @@ import Link from "next/link";
 import ShopList from "../components/ShopList";
 
 export default async function Shops() {
-  const shopRoute = "shops";
+  const shopRoute = "shop";
 
-  return <ShopList shops={shopRoute} />;
+  return <ShopList nextRoute={shopRoute} />;
 }

@@ -28,7 +28,10 @@ export async function GET(req) {
       );
     }
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(
+      { message: "data fetched succesfully", DataFetched: rows },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json(
@@ -81,7 +84,10 @@ export async function POST(req, res) {
     ];
 
     const { rows } = await pool.query(query, values);
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json(
+      { message: "data fetched succesfully", DataFetched: rows[0] },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error adding orsder:", error);
     return NextResponse.json({ error: "Error adding order" }, { status: 500 });

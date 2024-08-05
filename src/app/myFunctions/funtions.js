@@ -1,9 +1,10 @@
-export const addFormToDatabase = async (Data, route, setMessage) => {
+export const addFormToDatabase = async (Data, route, setMessage, token) => {
   try {
     const response = await fetch(`/api/${route}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(Data),
     });
@@ -18,23 +19,28 @@ export const addFormToDatabase = async (Data, route, setMessage) => {
     }
 
     const result = await response.json();
-    setMessage(`${route} added successfully!`);
+    setMessage(result.message);
+    return result.DataFetched;
   } catch (error) {
     console.error(`Error adding ${route}`, error.message);
-    setMessage(
-      `Failed to add ${route}. Please try again. Error: ${error.message}`
-    );
+    setMessage(`Failed  ${route}. Please try again. Error: ${error.message}`);
+    return [];
   }
 };
 
-export const fetchItemsFromDatabase = async (route) => {
+export const fetchItemsFromDatabase = async (route, token) => {
   try {
-    const response = await fetch(`/api/${route}`);
+    const response = await fetch(`/api/${route}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     if (!response.ok) {
       throw new Error("Failed to fetch items");
     }
     const itemsData = await response.json();
-    return itemsData;
+    return itemsData.DataFetched;
   } catch (error) {
     console.error("Error fetching items", error.message);
     return [];

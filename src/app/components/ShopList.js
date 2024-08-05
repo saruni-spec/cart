@@ -2,16 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { fetchItemsFromDatabase } from "../myFunctions/funtions";
 
 const ShopList = ({ nextRoute }) => {
+  const ROUTE = "shop";
   const [shops, setShops] = useState([]);
 
   async function getShops() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shop`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch shops");
-    }
-    const shopsData = await res.json();
+    const shopsData = await fetchItemsFromDatabase(ROUTE);
+
     setShops(shopsData);
   }
 

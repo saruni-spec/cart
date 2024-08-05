@@ -2,16 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { fetchItemsFromDatabase } from "../myFunctions/funtions";
 
 const ItemList = ({ refresh, setRefresh, selectItem = () => {} }) => {
+  const ROUTE = "item";
   const [items, setItems] = useState([]);
 
   async function getItems() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/item`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch items");
-    }
-    const itemsData = await res.json();
+    const itemsData = await fetchItemsFromDatabase(ROUTE);
+
     console.log("getting items");
     setItems(itemsData);
   }
@@ -28,12 +27,15 @@ const ItemList = ({ refresh, setRefresh, selectItem = () => {} }) => {
       {items ? (
         items.map((item) => (
           <li key={item.item_id} onClick={() => selectItem(item)}>
-            <p>{item.name}</p>
-            <p>{item.brand}</p>
-            <p>{item.quality}</p>
-            <p>Quantity: {JSON.stringify(item.quantity)}</p>
+            <p>
+              {item.name}({item.type})-{item.brand}
+            </p>
+            <p>
+              Size : {item.size}
+              {item.measurement}
+            </p>
             <p>{item.description}</p>
-            <p>Type:{item.type}</p>
+
             <p>{item.image_url}</p>
           </li>
         ))

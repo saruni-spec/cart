@@ -13,7 +13,10 @@ export async function GET(req) {
       );
     }
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(
+      { message: "data fetched succesfully", DataFetched: rows },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching categories:", error);
     return NextResponse.json(

@@ -14,24 +14,9 @@ const AddItem = ({ setRefresh }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    const Data = Object.fromEntries(formData);
 
-    // Restructure the data
-    const restructuredData = {
-      ...data,
-      quantity: {
-        small: data.small || "",
-        medium: data.medium || "",
-        large: data.large || "",
-      },
-    };
-
-    // Remove the individual size fields
-    delete restructuredData.small;
-    delete restructuredData.medium;
-    delete restructuredData.large;
-    console.log(restructuredData, "restructuredData");
-    addFormToDatabase(restructuredData, ROUTE, setMessage);
+    addFormToDatabase(Data, ROUTE, setMessage);
     e.target.reset();
     setRefresh(true);
   };
@@ -69,9 +54,10 @@ const AddItem = ({ setRefresh }) => {
         <input placeholder="type" name="type" />
       </label>
       <label>
-        <input placeholder="small" name="small" />
-        <input placeholder="medium" name="medium" />
-        <input placeholder="large" name="large" />
+        <input placeholder="Size" name="size" />
+      </label>
+      <label>
+        <input placeholder="Unit Measurement" name="measurement" />
       </label>
       <label>
         <input placeholder="description" name="description" />

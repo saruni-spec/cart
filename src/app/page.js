@@ -2,7 +2,7 @@ import React from "react";
 import ShopList from "./components/ShopList";
 
 export default function Home() {
-  const shopRoute = "shops";
+  const shopRoute = "shop";
   return (
     <>
       <div>
