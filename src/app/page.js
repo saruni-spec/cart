@@ -3,6 +3,7 @@ import ShopList from "./components/ShopList";
 
 export default function Home() {
   const shopRoute = "shop";
+
   return (
     <>
       <div>

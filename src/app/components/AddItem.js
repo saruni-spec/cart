@@ -11,12 +11,13 @@ const AddItem = ({ setRefresh }) => {
   const [message, setMessage] = useState(null);
   const [categories, setCategories] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const Data = Object.fromEntries(formData);
 
-    addFormToDatabase(Data, ROUTE, setMessage);
+    const results = await addFormToDatabase(Data, ROUTE);
+    setMessage(results.message);
     e.target.reset();
     setRefresh(true);
   };

@@ -5,11 +5,12 @@ const AddShop = () => {
   const ROUTE = "shop";
   const [message, setMessage] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const Data = Object.fromEntries(formData);
-    addFormToDatabase(Data, ROUTE, setMessage);
+    const results = await addFormToDatabase(Data, ROUTE);
+    setMessage(results.message);
     e.target.reset(); // Reset the form
   };
 

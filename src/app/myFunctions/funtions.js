@@ -1,4 +1,4 @@
-export const addFormToDatabase = async (Data, route, setMessage, token) => {
+export const addFormToDatabase = async (Data, route, token) => {
   try {
     const response = await fetch(`/api/${route}`, {
       method: "POST",
@@ -19,12 +19,11 @@ export const addFormToDatabase = async (Data, route, setMessage, token) => {
     }
 
     const result = await response.json();
-    setMessage(result.message);
-    return result.DataFetched;
+    return result;
   } catch (error) {
     console.error(`Error adding ${route}`, error.message);
     setMessage(`Failed  ${route}. Please try again. Error: ${error.message}`);
-    return [];
+    return { message: "Failed,Please Try Again", DataFetched: [] };
   }
 };
 

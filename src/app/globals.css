@@ -74,3 +74,22 @@ button{
   flex-wrap: wrap;
   cursor: pointer;
  }
+ nav{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  position: fixed;
+  top: 0;
+  width:100% ;
+  left: 0;
+
+ }
+ .navBar{
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+ }
+ .navBar li:last-child{
+  margin-left: auto;
+ }

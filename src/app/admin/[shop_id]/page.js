@@ -19,7 +19,7 @@ const AddItemsToShopInventory = () => {
 
   const shop_id = searchParams.get("shop_id");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selecteditem) {
       alert("Please select item to add");
@@ -35,7 +35,8 @@ const AddItemsToShopInventory = () => {
     Data.item_id = selecteditem.item_id;
 
     console.log(Data, ROUTE);
-    addFormToDatabase(Data, ROUTE, setMessage);
+    const results = await addFormToDatabase(Data, ROUTE);
+    setMessage(results.message);
     e.target.reset(); // Reset the form
   };
   return (
