@@ -11,6 +11,7 @@ const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [cart_id, setCart_id] = useState(null);
   const [firstLoad, setfirstLoad] = useState(true);
   const { token } = useUser();
 
@@ -18,12 +19,15 @@ export const CartProvider = ({ children }) => {
     console.log("syncing cart checking token");
     if (token) {
       console.log("syncing cart");
-      await addFormToDatabase(
-        cart,
+      const results = await addFormToDatabase(
+        { cartItems: cart, cart_id: cart_id },
         "cart/buyer",
 
         token
       );
+      const CartAdded = results.DataFetched;
+      setCart(CartAdded.cart);
+      setCart_id(CartAdded.cart_id);
     } else {
       const newToken = localStorage.getItem("token");
       if (!newToken) {
@@ -32,7 +36,7 @@ export const CartProvider = ({ children }) => {
 
       console.log("syncing cart with new token");
       await addFormToDatabase(
-        { cartItems: cart },
+        { cartItems: cart, cart_id: cart_id },
         "cart/buyer",
 
         newToken
@@ -43,6 +47,7 @@ export const CartProvider = ({ children }) => {
   const debounceSyncCart = debounce(syncCart, 10000);
 
   const addToCart = (item) => {
+    console.log(item, "adding to cart");
     setCart((prevCart) => {
       const existingItem = prevCart.find((i) => i.item_id === item.item_id);
       if (existingItem) {
@@ -53,6 +58,8 @@ export const CartProvider = ({ children }) => {
         return [...prevCart, { ...item, quantity: 1, addedToCart: true }];
       }
     });
+
+    console.log(cart, "em added to this cart");
   };
 
   const removeFromCart = (itemId) => {
@@ -73,6 +80,9 @@ export const CartProvider = ({ children }) => {
   };
 
   const increaseItemNo = (item) => {
+    if (item.quantity >= item.inventory_quantity) {
+      return;
+    }
     const newCart = cart.map((cartItem) => {
       if (cartItem.item_id === item.item_id) {
         cartItem.quantity += 1;
@@ -85,7 +95,8 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const fetchCart = async () => {
       if (token) {
-        const fetchedCart = await fetchItemsFromDatabase("cart/buyer", token);
+        const results = await fetchItemsFromDatabase("cart/buyer", token);
+        const fetchedCart = results.DataFetched;
         if (fetchedCart && fetchedCart.length > 0) {
           setCart(fetchedCart);
         } else {
@@ -114,7 +125,8 @@ export const CartProvider = ({ children }) => {
     const fetchCart = async () => {
       console.log("fetching cart on moutn");
       if (token) {
-        const fetchedCart = await fetchItemsFromDatabase("cart/buyer", token);
+        const results = await fetchItemsFromDatabase("cart/buyer", token);
+        const fetchedCart = results.DataFetched;
         if (fetchedCart && fetchedCart.length > 0) {
           console.log("fetching cart on moutn server");
           setCart(fetchedCart);

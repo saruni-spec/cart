@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "../contexts/CartContext";
+import Image from "next/image";
 
 const Cart = () => {
   const { cart, removeFromCart, increaseItemNo, reduceItemNo } = useCart();
@@ -27,8 +28,13 @@ const Cart = () => {
               </p>
               <p>{item.description}</p>
 
-              <p>{item.image_url}</p>
-              <p>{item.quantity}</p>
+              <Image
+                src={item.image_url}
+                alt={item.name}
+                width={50}
+                height={50}
+              />
+
               <button onClick={() => reduceItemNo(item)}>Reduce</button>
               <button onClick={() => increaseItemNo(item)}>Add</button>
               <button onClick={() => removeFromCart(item.item_id)}>

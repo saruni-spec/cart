@@ -43,6 +43,12 @@ export async function POST(req, res) {
     );
   } catch (error) {
     console.error("Error logging in:", error);
-    return NextResponse.json({ error: "Error logging in" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Error logging in",
+        message: "Error Logging in,Please Try Again",
+      },
+      { status: 500 }
+    );
   }
 }

@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
-async function getItem(req, res) {
+async function GET(req, res) {
   const { item__id } = req.query; // Extract item_id from query parameters
 
   if (!item__id) {

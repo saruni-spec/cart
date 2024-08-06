@@ -23,8 +23,8 @@ export async function GET(req) {
 
     if (rows.length === 0) {
       return NextResponse.json(
-        null,
-        { message: "Empty dataset" },
+        { DataFetched: null },
+        { message: "Please Create an Account" },
         { status: 404 }
       );
     }
@@ -33,6 +33,8 @@ export async function GET(req) {
   } catch (error) {
     console.error("Error fetching inventory buyer info:", error);
     return NextResponse.json(
+      { DataFetched: null, message: "Please try Again " },
+
       { error: "Error fetching inventory buyer info" },
       { status: 500 }
     );
@@ -73,11 +75,17 @@ export async function POST(req, res) {
       { expiresIn: "24h" }
     );
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: token },
+      { message: "Account Created Successfully", DataFetched: token },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error adding buyers:", error);
-    return NextResponse.json({ error: "Error adding buyers" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Error adding buyers",
+        message: "Account Not Created,Please Try Again",
+      },
+      { status: 500 }
+    );
   }
 }

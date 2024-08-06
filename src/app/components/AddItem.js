@@ -3,7 +3,10 @@ import React, { useEffect, useState } from "react";
 import {
   addFormToDatabase,
   fetchItemsFromDatabase,
+  updateItemInDatabase,
 } from "../myFunctions/funtions";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../utils/firebase";
 
 const AddItem = ({ setRefresh }) => {
   const ROUTE = "item";
@@ -13,19 +16,38 @@ const AddItem = ({ setRefresh }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const Data = Object.fromEntries(formData);
+    try {
+      // Step 1: Add item to database without image URL
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+      const results = await addFormToDatabase(data, ROUTE);
 
-    const results = await addFormToDatabase(Data, ROUTE);
-    setMessage(results.message);
-    e.target.reset();
-    setRefresh(true);
+      const itemId = results.DataFetched.item_id;
+
+      // Step 2: Upload image and get URL
+      const storageRef = ref(storage, `items/${itemId}`);
+      await uploadBytes(storageRef, data.image_url);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Step 3: Update database record with image URL
+      const updateResult = await updateItemInDatabase(
+        { field: "image_url", value: downloadURL, id: itemId },
+        ROUTE
+      );
+
+      setMessage(updateResult.message || results.message);
+      e.target.reset();
+      setRefresh(true);
+    } catch (error) {
+      console.error("Error in handleSubmit:", error);
+      setMessage("An error occurred while submitting the form.");
+    }
   };
-
   const getCategories = async (route) => {
     const categories = await fetchItemsFromDatabase(CATEGORYROUTE);
     console.log(categories, "my categories");
-    setCategories(categories);
+    setCategories(categories.DataFetched);
+    setMessage(categories.message);
   };
 
   useEffect(() => {
@@ -35,14 +57,17 @@ const AddItem = ({ setRefresh }) => {
   return (
     <form onSubmit={handleSubmit} className="addItems">
       <label>
-        <select name="category">
+        <select name="category_id">
           <option value="">Select Category</option>
-          {categories &&
+          {categories ? (
             categories.map((category) => (
               <option key={category.category_id} value={category.category_id}>
                 {category.name}
               </option>
-            ))}
+            ))
+          ) : (
+            <></>
+          )}
         </select>
       </label>
       <label>
@@ -64,7 +89,7 @@ const AddItem = ({ setRefresh }) => {
         <input placeholder="description" name="description" />
       </label>
       <label>
-        <input placeholder="image" name="image" />
+        <input type="file" name="image_url" />
       </label>
       <button type="submit">Add Item</button>
       {message && <p>{message}</p>}

@@ -2,20 +2,25 @@ import React from "react";
 import PropTypes from "prop-types";
 import { fetchItemsFromDatabase } from "../myFunctions/funtions";
 import { useQuery } from "react-query";
+import Image from "next/image";
 
 const ROUTE = "item";
 
 async function getItems() {
   const itemsData = await fetchItemsFromDatabase(ROUTE);
   console.log("fetching items");
-  return itemsData;
+  return { items: itemsData.DataFetched, message: itemsData.message };
 }
 
 const ItemList = ({ refresh, setRefresh, selectItem = () => {} }) => {
-  const { data: items } = useQuery("items", getItems, {
-    staleTime: 60000, // Cache the data for 1 minute
+  const { data, isLoading, error } = useQuery("items", getItems, {
+    staleTime: 180000, // Cache the data for 1 minute
     refetchOnWindowFocus: false, // Prevent refetching when the window regains focus
   });
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>An error occurred: {error.message}</p>;
+  const { items, message } = data || {};
 
   return (
     <ul className="itemList">
@@ -31,11 +36,16 @@ const ItemList = ({ refresh, setRefresh, selectItem = () => {} }) => {
             </p>
             <p>{item.description}</p>
 
-            <p>{item.image_url}</p>
+            <Image
+              src={`${item.image_url}`}
+              alt={`${item.name}${item.brand}`}
+              width={50}
+              height={50}
+            />
           </li>
         ))
       ) : (
-        <>No items have been added</>
+        <p>{message}</p>
       )}
     </ul>
   );

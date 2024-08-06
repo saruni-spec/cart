@@ -1,12 +1,33 @@
 // pages/api/item.js
 import pool from "@/db";
 import { NextResponse } from "next/server";
+import { authenticateToken } from "@/src/app/myFunctions/funtions";
 
 export async function GET(req) {
-  const { shop_id } = req.query; // Extract shop_id from query parameters
+  const user = authenticateToken(req);
 
-  if (!shop_id) {
-    return NextResponse.json({ error: "shop_id is required" }, { status: 400 });
+  if (!user) {
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "Please Sign In To Continue",
+        DataFetched: null,
+      },
+      { status: 401 }
+    );
+  }
+
+  const buyer_id = user.buyer_id;
+
+  if (!buyer_id) {
+    return NextResponse.json(
+      {
+        error: "buyer_id is required",
+        message: "Please Sign In To Continue",
+        DataFetched: null,
+      },
+      { status: 400 }
+    );
   }
 
   try {
@@ -14,11 +35,11 @@ export async function GET(req) {
     const query = `
       SELECT o.* 
       FROM checkout o
-      JOIN CART c ON o.cart_id = c.cart_id
-      WHERE c.shop_id = $1
+      JOIN CART_ITEM c ON o.cart_id = c.cart_id
+      WHERE c.buyer_id = $1
     `;
 
-    const { rows } = await pool.query(query, [shop_id]);
+    const { rows } = await pool.query(query, [buyer_id]);
 
     if (rows.length === 0) {
       return NextResponse.json(
@@ -29,7 +50,7 @@ export async function GET(req) {
     }
 
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: rows },
+      { message: "Order data fetched succesfully", DataFetched: rows },
       { status: 200 }
     );
   } catch (error) {
@@ -85,7 +106,7 @@ export async function POST(req, res) {
 
     const { rows } = await pool.query(query, values);
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: rows[0] },
+      { message: "Order data fetched succesfully", DataFetched: rows[0] },
       { status: 201 }
     );
   } catch (error) {

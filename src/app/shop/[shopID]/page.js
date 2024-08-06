@@ -1,35 +1,35 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { useSearchParams } from "next/navigation";
 import { fetchItemsFromDatabase } from "../../myFunctions/funtions";
 import { useCart } from "../../contexts/CartContext";
+import Image from "next/image";
 
 export default function Shop() {
   const searchParams = useSearchParams();
   const shop_id = searchParams.get("shop_id");
   const GETITEMSROUTE = `inventory?shop_id=${shop_id}`;
-  const [items, setItems] = useState([]);
   const { cart, addToCart } = useCart();
+  console.log(cart, "in cart 1 items");
 
-  useEffect(() => {
-    async function fetchItems() {
-      const data = await fetchItemsFromDatabase(GETITEMSROUTE);
-      const storedCart = cart;
-      const cartItemsSet = new Set(storedCart.map((item) => item.item_id));
-      const updatedItems = data.map((item) => ({
-        ...item,
-        addedToCart: cartItemsSet.has(item.item_id),
-      }));
-      setItems(updatedItems);
-      localStorage.setItem("shop_id", shop_id);
+  const { data, isLoading, error } = useQuery(
+    [cart], // Include cart in the query key
+    () => fetchItems(cart, GETITEMSROUTE),
+    {
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
     }
-    fetchItems();
-  }, [GETITEMSROUTE, shop_id, cart]);
+  );
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>An error occurred: {error.message}</p>;
+
+  const { items, message } = data || {};
 
   return (
     <>
       <ul className="itemList">
-        {items.length > 0 ? (
+        {items && items.length > 0 ? (
           items.map((item) => (
             <li key={item.item_id}>
               <p>
@@ -38,7 +38,12 @@ export default function Shop() {
               <p>
                 {item.size} {item.measurement}
               </p>
-              <p>{item.image_url}</p>
+              <Image
+                src={`${item.image_url}`}
+                alt={`${item.name}${item.brand}`}
+                width={50}
+                height={50}
+              />
               <p>{item.price}</p>
               {!item.addedToCart ? (
                 <button onClick={() => addToCart(item)}>Add to Cart</button>
@@ -48,9 +53,28 @@ export default function Shop() {
             </li>
           ))
         ) : (
-          <p>No Items in shop</p>
+          <p>{message}</p>
         )}
       </ul>
     </>
   );
+}
+
+async function fetchItems(cart, route) {
+  const results = await fetchItemsFromDatabase(route);
+  const data = results.DataFetched;
+  const message = results.message;
+
+  console.log(cart, "in cart 2 items");
+  if (cart.length > 0) {
+    console.log(cart, "we have a cart");
+    const cartItemsSet = new Set(cart.map((item) => item.item_id));
+    const updatedItems = data.map((item) => ({
+      ...item,
+      addedToCart: cartItemsSet.has(item.item_id),
+    }));
+    return { items: updatedItems, message: message };
+  }
+
+  return { items: data, message: message };
 }

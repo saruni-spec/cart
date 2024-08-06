@@ -1,50 +1,59 @@
-export const addFormToDatabase = async (Data, route, token) => {
-  try {
-    const response = await fetch(`/api/${route}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(Data),
-    });
+import jwt from "jsonwebtoken";
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        `Failed to add ${route}: ${response.status} ${
-          response.statusText
-        }. ${JSON.stringify(errorData)}`
-      );
-    }
+export const authenticateToken = (req) => {
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader && authHeader.split(" ")[1];
 
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error(`Error adding ${route}`, error.message);
-
-    return { message: "Failed,Please Try Again", DataFetched: [] };
+  if (!token) {
+    return null;
   }
+
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    console.error("Token verification failed:", error.message);
+    return null;
+  }
+};
+
+export const addFormToDatabase = async (Data, route, token) => {
+  const response = await fetch(`/api/${route}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(Data),
+  });
+
+  const result = await response.json();
+  return result;
 };
 
 export const fetchItemsFromDatabase = async (route, token) => {
-  try {
-    const response = await fetch(`/api/${route}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  const response = await fetch(`/api/${route}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch items");
-    }
-    const itemsData = await response.json();
-    return itemsData.DataFetched;
-  } catch (error) {
-    console.error("Error fetching items", error.message);
-    return [];
-  }
+  const itemsData = await response.json();
+  console.log(itemsData, "fetchItemsFromDatabae");
+  return itemsData;
 };
+
+export async function updateItemInDatabase(updateData, route) {
+  const response = await fetch(`/api/${route}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updateData),
+  });
+
+  return await response.json();
+}
 
 export function debounce(func, timeout) {
   let timer;

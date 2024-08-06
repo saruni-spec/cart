@@ -8,20 +8,24 @@ export async function GET(req) {
 
     if (rows.length === 0) {
       return NextResponse.json(
-        null,
-        { message: "buyers not found" },
+        { DataFetched: [] },
+        { message: "No buyer data found" },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: rows },
+      { message: "Buyer Data fetched succesfully", DataFetched: rows },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error fetching buyer:", error);
     return NextResponse.json(
-      { error: "Error fetching buyer" },
+      {
+        error: "Error fetching buyer",
+        message: "Error fetching buyers,Please Try Again",
+        DataFetched: [],
+      },
       { status: 500 }
     );
   }

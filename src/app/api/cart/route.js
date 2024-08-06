@@ -8,45 +8,53 @@ export async function GET(req) {
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { message: "Empty dataset", cart: rows },
+        { message: "No Data Found", DataFetched: [] },
         { status: 404 }
       );
     }
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: rows },
+      { message: "Cart data fetched succesfully", DataFetched: rows },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error fetching cart:", error);
-    return NextResponse.json({ error: "Error fetching cart" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Error fetching carts",
+        message: "Error Fetching Carts,Please try again",
+        DataFetched: [],
+      },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { Buyer_ID, Store_ID, Date, Time, Total_price } = body;
+    const { Buyer_ID, Total_price } = body;
 
-    const query = `
-      INSERT INTO cart (Buyer_ID ,
-    Store_ID ,
-    Date ,
-    Time ,
-    Total_price ,
-    
-) 
-      VALUES ($1, $2, $3,$4,$5) 
-      RETURNING *
-    `;
-    const values = [Buyer_ID, Store_ID, Date, Time, Total_price];
+    const createCartQuery = `
+    INSERT INTO CART (Buyer_ID,  Date, Time, Status)
+    VALUES ($1,$2, CURRENT_DATE, CURRENT_TIME, 0, 'active')
+    RETURNING Cart_ID
+  `;
+    const values = [Buyer_ID, Total_price];
 
-    const { rows } = await pool.query(query, values);
+    const { rows } = await pool.query(createCartQuery, values);
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: rows[0] },
+      { message: "Cart data fetched succesfully", DataFetched: rows[0] },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error adding cart:", error);
-    return NextResponse.json({ error: "Error adding cart" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Error adding cart",
+        message: "Error Adding cart Items,Please try again",
+        DataFetched: [],
+      },
+      { status: 500 }
+    );
   }
 }

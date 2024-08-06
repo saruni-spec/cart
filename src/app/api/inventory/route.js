@@ -7,38 +7,46 @@ export async function GET(req) {
   const shop_id = searchParams.get("shop_id");
 
   if (!shop_id) {
-    return NextResponse.json({ error: "shop_id is required" }, { status: 400 });
-  } else {
-    console.log(shop_id, "this is the shop id");
-    console.log(req.url, "this is the req.url");
+    return NextResponse.json(
+      {
+        error: "shop_id is required",
+        message: "URL not Found",
+        DataFetched: null,
+      },
+      { status: 400 }
+    );
   }
 
   try {
     const query = `
-      SELECT i.item_id, i.name, i.brand, i.type,  i.description, i.image_url, inv.quantity,inv.price
-      FROM INVENTORY inv
-      JOIN ITEM i ON inv.item_id = i.item_id
-      WHERE inv.shop_id = $1
+      SELECT i.*, iv.*
+FROM item i
+JOIN inventory iv ON iv.item_id = i.item_id
+WHERE iv.shop_id = $1;
+
     `;
 
     const { rows } = await pool.query(query, [shop_id]);
 
     if (rows.length === 0) {
       return NextResponse.json(
-        null,
-        { message: "Empty dataset" },
+        { message: "Shop Inventory Empty", DataFetched: [] },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: rows },
+      { message: "Inventory Loaded", DataFetched: rows },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error fetching inventory items:", error);
     return NextResponse.json(
-      { error: "Error fetching inventory items" },
+      {
+        error: "Error fetching inventory items",
+        message: "Error getting Inventory,Try again",
+        DataFetched: [],
+      },
       { status: 500 }
     );
   }
@@ -50,7 +58,7 @@ export async function POST(req) {
     const { item_id, shop_id, quantity, price } = body;
 
     const query = `
-      INSERT INTO inventory (item_id,shop_Id,quantity,price) 
+      INSERT INTO inventory (item_id,shop_Id,inventory_quantity,price) 
       VALUES ($1, $2, $3,$4) 
       RETURNING *
     `;
@@ -58,13 +66,17 @@ export async function POST(req) {
 
     const { rows } = await pool.query(query, values);
     return NextResponse.json(
-      { message: "data fetched succesfully", DataFetched: rows[0] },
+      { message: "Inventory Updated", DataFetched: rows[0] },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error adding item to inventory:", error);
     return NextResponse.json(
-      { error: "Error adding item to inventory" },
+      {
+        error: "Error adding item to inventory",
+        message: "Error adding Item,Try Again",
+        DataFetched: [],
+      },
       { status: 500 }
     );
   }
