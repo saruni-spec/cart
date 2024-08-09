@@ -1,8 +1,9 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { fetchItemsFromDatabase } from "../myFunctions/funtions";
 import { useQuery } from "react-query";
+import { useCart } from "../contexts/CartContext";
 
 const ROUTE = "shop";
 
@@ -13,6 +14,11 @@ async function getShops() {
 }
 
 const ShopList = ({ nextRoute }) => {
+  const { cart, syncCart } = useCart();
+  useEffect(() => {
+    syncCart(cart);
+  }, []);
+
   const { data, error, isLoading } = useQuery("shops", getShops, {
     staleTime: 180000, // Cache the data for 1 minute
     refetchOnWindowFocus: false, // Prevent refetching when the window regains focus

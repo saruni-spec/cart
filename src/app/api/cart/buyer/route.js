@@ -42,12 +42,12 @@ export async function GET(req) {
             ci.*,
             i.*,
             inv.shop_id,
-            inv.quantity AS inventory_quantity,
+            inv.inventory_quantity AS inventory_quantity,
             inv.price AS inventory_price
         FROM
             cart_item ci
         JOIN
-            inventory inv ON ci.item_id_in_inventory = inv.inventory_item_id
+            inventory inv ON ci.inventory_item_id = inv.inventory_item_id
         JOIN
             item i ON inv.item_id = i.item_id
         JOIN
@@ -107,37 +107,26 @@ export async function POST(req) {
     const body = await req.json();
     const { cartItems, cart_id } = body;
     let current_cart_id = cart_id;
-
-    if (!Array.isArray(cartItems) || cartItems.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid cart items",
-          message: "Error Adding Iems To Cart,Please try again",
-          DataFetched: [],
-        }),
-        {
-          status: 400,
-        }
-      );
-    }
+    console.log(cartItems, "cartItems", cart_id, "cart id o add");
 
     if (!current_cart_id) {
       const getCartQuery = `
      SELECT Cart_ID 
 FROM CART
 WHERE Buyer_ID = $1 
-  AND Status = TRUE;
+  AND Status = TRUE
    
-      LIMIT 1
+      LIMIT 1;
     `;
       let { rows: cartRows } = await pool.query(getCartQuery, [buyer_id]);
 
       if (cartRows.length === 0) {
         // Create a new cart if one doesn't exist
+        console.log("Creating new cart");
 
         const createCartQuery = `
-        INSERT INTO CART (Buyer_ID,  Date, Total_price, Status)
-        VALUES ($1, CURRENT_DATE, CURRENT_TIME, 0, FALSE)
+        INSERT INTO CART (Buyer_ID,  Date_created, Total_cart_price, Status)
+        VALUES ($1, CURRENT_DATE, 0, TRUE)
         RETURNING Cart_ID
       `;
         const { rows: newCartRows } = await pool.query(createCartQuery, [
@@ -145,6 +134,7 @@ WHERE Buyer_ID = $1
         ]);
         current_cart_id = newCartRows[0].cart_id;
       } else {
+        console.log("Using existing cart");
         current_cart_id = cartRows[0].cart_id;
       }
       console.log(current_cart_id, "cart id in cart server");
@@ -153,44 +143,108 @@ WHERE Buyer_ID = $1
     // Get or create a cart for the buyer
 
     // Prepare the query for adding items
+    const checkItemQuery = `
+    SELECT
+            ci.*,
+            i.*,
+            inv.shop_id,
+            inv.inventory_quantity AS inventory_quantity,
+            inv.price AS inventory_price
+        FROM
+            cart_item ci
+        JOIN
+            inventory inv ON ci.inventory_item_id = inv.inventory_item_id
+        JOIN
+            item i ON inv.item_id = i.item_id
+        JOIN
+            cart c ON ci.cart_id = c.cart_id
+        
+  WHERE c.Cart_ID = $1;
+  `;
+
     const addItemQuery = `
-  INSERT INTO CART_ITEM (Cart_ID, Item_Inventory_ID, Quantity_in_Cart,price,DATE,TIME,CONFIRMED)
-  VALUES ($1, $2, $3,$4,CURRENT_DATE, CURRENT_TIME,TRUE)
-  ON CONFLICT (Cart_ID, Item_Inventory_ID) 
-  DO UPDATE SET Quantity = CART_ITEM.Quantity + $3
-  RETURNING *
-`;
+    INSERT INTO CART_ITEM (Cart_ID, inventory_item_id, Quantity_in_Cart, cart_item_price, date_added, time_added, isconfirmed)
+    VALUES ($1, $2, $3, $4, CURRENT_DATE, CURRENT_TIME, TRUE)
+    RETURNING *
+  `;
 
     let totalPriceIncrease = 0;
-    const addedItems = [];
 
-    // Add each item to the cart
-    // Add each item to the cart
+    let { rows } = await pool.query(checkItemQuery, [current_cart_id]);
+    const cartCurrentItems = rows;
+
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      return new Response(
+        JSON.stringify({
+          message: "Cart synced from previous session",
+          DataFetched: cartCurrentItems,
+        }),
+        {
+          status: 200,
+        }
+      );
+    }
+
+    console.log("cartCurrentItems in server", cartCurrentItems);
+
     for (const item of cartItems) {
-      const { item_inventory_id, quantity, price } = item;
-      const item_price = price * quantity;
-      const { rows } = await pool.query(addItemQuery, [
-        current_cart_id,
-        item_inventory_id,
-        quantity,
-        item_price,
-      ]);
-      addedItems.push(rows[0]);
+      const { inventory_item_id, quantity_in_cart, price } = item;
+      const item_price = price * quantity_in_cart;
+      const existingItem = cartCurrentItems.find(
+        (cartItem) => cartItem.inventory_item_id === inventory_item_id
+      );
+
+      if (existingItem) {
+        console.log("Item already exists in cart, updating quantity");
+        const updateQuery = `
+                UPDATE CART_ITEM
+                SET quantity_in_cart = $1
+                WHERE Cart_ID = $2 AND inventory_item_id = $3;`;
+        const updateQuery2 = `
+                UPDATE CART_ITEM
+                SET cart_item_price = $1
+                WHERE Cart_ID = $2 AND inventory_item_id = $3;`;
+        await pool.query(updateQuery, [
+          quantity_in_cart,
+          current_cart_id,
+          inventory_item_id,
+        ]);
+        await pool.query(updateQuery2, [
+          item_price,
+          current_cart_id,
+          inventory_item_id,
+        ]);
+
+        // Calculate the price difference
+      } else {
+        console.log("Item does not exist in cart, adding item");
+        await pool.query(addItemQuery, [
+          current_cart_id,
+          inventory_item_id,
+          quantity_in_cart,
+          item_price,
+        ]);
+      }
       totalPriceIncrease += item_price;
     }
 
+    const addedItems = await pool.query(checkItemQuery, [current_cart_id]);
+
+    console.log(addedItems.rows, "addedItems we have the new cart in server");
     // Update the total price in the CART table
     const updateTotalQuery = `
       UPDATE CART 
-      SET Total_price = Total_price + $1 
+      SET Total_cart_price =  $1 
       WHERE Cart_ID = $2
     `;
     await pool.query(updateTotalQuery, [totalPriceIncrease, current_cart_id]);
 
+    console.log("Items added to cart successfully");
+
     return NextResponse.json(
       {
         message: "Items added to cart successfully",
-        DataFetched: { cart: addedItems, cart_id: current_cart_id },
+        DataFetched: { cart: addedItems.rows, cart_id: current_cart_id },
       },
       { status: 200 }
     );
@@ -202,6 +256,105 @@ WHERE Buyer_ID = $1
         message: "Error Adding Iems To Cart,Please try again",
         DataFetched: [],
       },
+      { status: 500 }
+    );
+  }
+}
+export async function DELETE(req) {
+  const user = authenticateToken(req);
+  if (!user) {
+    return new Response(
+      JSON.stringify({
+        error: "Unauthorized",
+        message: "Please Sign In",
+        DataFetched: null,
+      }),
+      { status: 401 }
+    );
+  }
+
+  try {
+    const body = await req.json();
+
+    const { cartitem_id, cart_id } = body;
+
+    if (!cartitem_id || !cart_id) {
+      return new Response(
+        JSON.stringify({
+          error: "Missing parameters",
+          message: "Cart item ID and Cart ID are required",
+          DataFetched: null,
+        }),
+        { status: 400 }
+      );
+    }
+
+    // First, get the price of the item to be deleted
+    const getItemPriceQuery = `
+      SELECT cart_item_price
+      FROM CART_ITEM
+      WHERE cartitem_id = $1 AND cart_id = $2
+    `;
+    const { rows: priceRows } = await pool.query(getItemPriceQuery, [
+      cartitem_id,
+      cart_id,
+    ]);
+
+    if (priceRows.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Item not found",
+          message: "The specified cart item does not exist",
+          DataFetched: null,
+        }),
+        { status: 404 }
+      );
+    }
+
+    const itemPrice = priceRows[0].cart_item_price;
+
+    // Delete the cart item
+    const deleteItemQuery = `
+     UPDATE cart_item SET isconfirmed=FALSE
+      WHERE cartitem_id = $1 
+    `;
+    await pool.query(deleteItemQuery, [cartitem_id]);
+
+    // Update the total price in the CART table
+    const updateCartPriceQuery = `
+      UPDATE CART
+      SET Total_cart_price = Total_cart_price - $1
+      WHERE Cart_ID = $2
+    `;
+    await pool.query(updateCartPriceQuery, [itemPrice, cart_id]);
+
+    // Fetch the updated cart items
+    const getUpdatedCartQuery = `
+      SELECT ci.*, i.*, inv.shop_id, inv.inventory_quantity, inv.price AS inventory_price
+      FROM CART_ITEM ci
+      JOIN INVENTORY inv ON ci.inventory_item_id = inv.inventory_item_id
+      JOIN ITEM i ON inv.item_id = i.item_id
+      WHERE ci.cart_id = $1
+    `;
+    const { rows: updatedCart } = await pool.query(getUpdatedCartQuery, [
+      cart_id,
+    ]);
+
+    return new Response(
+      JSON.stringify({
+        message: "Cart item deleted successfully",
+        DataFetched: { cart: updatedCart, cart_id: cart_id },
+      }),
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting cart item:", error);
+    return new Response(
+      JSON.stringify({
+        error: "Error deleting cart item",
+        message: "An unexpected error occurred",
+        DataFetched: null,
+      }),
       { status: 500 }
     );
   }

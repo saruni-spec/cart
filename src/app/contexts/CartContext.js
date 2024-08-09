@@ -2,153 +2,154 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import {
   addFormToDatabase,
-  fetchItemsFromDatabase,
   debounce,
+  deleteItemFromDatabase,
 } from "../myFunctions/funtions";
 import { useUser } from "./UserContext";
 
+const initialCartState = [];
+const ROUTE = "cart/buyer";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(initialCartState);
   const [cart_id, setCart_id] = useState(null);
-  const [firstLoad, setfirstLoad] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const { token } = useUser();
 
-  const syncCart = async () => {
-    console.log("syncing cart checking token");
-    if (token) {
-      console.log("syncing cart");
-      const results = await addFormToDatabase(
-        { cartItems: cart, cart_id: cart_id },
-        "cart/buyer",
-
-        token
-      );
-      const CartAdded = results.DataFetched;
-      setCart(CartAdded.cart);
-      setCart_id(CartAdded.cart_id);
-    } else {
-      const newToken = localStorage.getItem("token");
-      if (!newToken) {
-        return;
-      }
-
-      console.log("syncing cart with new token");
-      await addFormToDatabase(
-        { cartItems: cart, cart_id: cart_id },
-        "cart/buyer",
-
-        newToken
-      );
+  const syncCart = async (cart) => {
+    if (syncing) {
+      console.log("another syncing cart");
+      return;
     }
+
+    console.log("syncing cart checking token");
+    if (!token) {
+      console.log("no token,no syncing");
+      return;
+    }
+    setSyncing(true);
+    console.log("we have token,syncing cart", cart);
+    const results = await addFormToDatabase(
+      { cartItems: cart, cart_id: cart_id },
+      ROUTE,
+
+      token
+    );
+
+    const CartAdded = results.DataFetched;
+    console.log(CartAdded.cart, "cart Aded After Sync");
+    setCart(CartAdded.cart);
+    setCart_id(CartAdded.cart_id);
+    setSyncing(false);
   };
 
   const debounceSyncCart = debounce(syncCart, 10000);
 
+  const saveCartToLocalStorage = (cart) => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  };
+
   const addToCart = (item) => {
-    console.log(item, "adding to cart");
+    console.log(item, "adding to cart", cart);
     setCart((prevCart) => {
       const existingItem = prevCart.find((i) => i.item_id === item.item_id);
       if (existingItem) {
         return prevCart.map((i) =>
-          i.item_id === item.item_id ? { ...i, quantity: i.quantity + 1 } : i
+          i.item_id === item.item_id
+            ? { ...i, quantity_in_cart: i.quantity_in_cart + 1 }
+            : i
         );
       } else {
-        return [...prevCart, { ...item, quantity: 1, addedToCart: true }];
+        return [
+          ...prevCart,
+          { ...item, quantity_in_cart: 1, addedToCart: true },
+        ];
       }
     });
-
+    saveCartToLocalStorage(cart);
+    debounceSyncCart(cart);
     console.log(cart, "em added to this cart");
   };
 
-  const removeFromCart = (itemId) => {
-    setCart((prevCart) => prevCart.filter((i) => i.item_id !== itemId));
+  const removeFromCart = async (item) => {
+    setCart((prevCart) => prevCart.filter((i) => i.item_id !== item.item_id));
+    if (token) {
+      const results = await deleteItemFromDatabase(item, ROUTE, token);
+      setCart(results.DataFetched.cart);
+    }
   };
 
   const reduceItemNo = (item) => {
-    if (item.quantity <= 0) {
+    console.log(item, "Reducing to cart", cart);
+    if (item.quantity_in_cart <= 0) {
       return;
     }
     const newCart = cart.map((cartItem) => {
       if (cartItem.item_id === item.item_id) {
-        cartItem.quantity -= 1;
+        cartItem.quantity_in_cart -= 1;
       }
       return cartItem;
     });
     setCart(newCart);
+    saveCartToLocalStorage(cart);
+    debounceSyncCart(cart);
   };
 
   const increaseItemNo = (item) => {
-    if (item.quantity >= item.inventory_quantity) {
+    console.log(item, "adding No +1 cart", cart);
+    if (item.quantity_in_cart >= item.inventory_quantity) {
       return;
     }
     const newCart = cart.map((cartItem) => {
       if (cartItem.item_id === item.item_id) {
-        cartItem.quantity += 1;
+        cartItem.quantity_in_cart += 1;
       }
       return cartItem;
     });
     setCart(newCart);
+    saveCartToLocalStorage(cart);
+    debounceSyncCart(cart);
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    saveCartToLocalStorage([]);
   };
 
   useEffect(() => {
     const fetchCart = async () => {
-      if (token) {
-        const results = await fetchItemsFromDatabase("cart/buyer", token);
-        const fetchedCart = results.DataFetched;
-        if (fetchedCart && fetchedCart.length > 0) {
-          setCart(fetchedCart);
-        } else {
-          const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
-          setCart(localCart);
-        }
-      } else {
-        const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
-        setCart(localCart);
+      const localCart = localStorage.getItem("cart");
+      if (!localCart || localCart === "undefined") {
+        return;
+      }
+      try {
+        setCart(JSON.parse(localCart));
+      } catch (error) {
+        console.error("Failed to parse cart from localStorage:", error);
+        setCart([]);
       }
     };
 
     fetchCart();
-  }, [token]);
-
-  useEffect(() => {
-    if (firstLoad) {
-      return;
-    }
-    localStorage.setItem("cart", JSON.stringify(cart));
-    console.log("added to locaa storage", cart);
-    debounceSyncCart();
-  }, [cart, firstLoad]);
-
-  useEffect(() => {
-    const fetchCart = async () => {
-      console.log("fetching cart on moutn");
-      if (token) {
-        const results = await fetchItemsFromDatabase("cart/buyer", token);
-        const fetchedCart = results.DataFetched;
-        if (fetchedCart && fetchedCart.length > 0) {
-          console.log("fetching cart on moutn server");
-          setCart(fetchedCart);
-        } else {
-          console.log("fetching cart on moutn local 1");
-          const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
-          setCart(localCart);
-        }
-      } else {
-        console.log("fetching cart on moutn  local 2");
-        const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
-        setCart(localCart);
-      }
-      setfirstLoad(false);
-    };
-
-    fetchCart();
+    debounceSyncCart(cart);
   }, []);
+
+  useEffect(() => {
+    syncCart(cart);
+  }, [token]);
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, increaseItemNo, reduceItemNo }}
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        increaseItemNo,
+        reduceItemNo,
+        syncCart,
+        clearCart,
+      }}
     >
       {children}
     </CartContext.Provider>

@@ -84,6 +84,7 @@ export async function POST(req, res) {
       {
         error: "Error adding buyers",
         message: "Account Not Created,Please Try Again",
+        DataFetched: null,
       },
       { status: 500 }
     );

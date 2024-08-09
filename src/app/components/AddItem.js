@@ -57,7 +57,7 @@ const AddItem = ({ setRefresh }) => {
   return (
     <form onSubmit={handleSubmit} className="addItems">
       <label>
-        <select name="category_id">
+        <select required name="category_id">
           <option value="">Select Category</option>
           {categories ? (
             categories.map((category) => (
@@ -71,25 +71,25 @@ const AddItem = ({ setRefresh }) => {
         </select>
       </label>
       <label>
-        <input placeholder="name" name="name" />
+        <input required placeholder="name" name="name" />
       </label>
       <label>
-        <input placeholder="brand" name="brand" />
+        <input required placeholder="brand" name="brand" />
       </label>
       <label>
-        <input placeholder="type" name="type" />
+        <input required placeholder="type" name="type" />
       </label>
       <label>
-        <input placeholder="Size" name="size" />
+        <input required placeholder="Size" name="size" />
       </label>
       <label>
-        <input placeholder="Unit Measurement" name="measurement" />
+        <input required placeholder="Unit Measurement" name="measurement" />
       </label>
       <label>
         <input placeholder="description" name="description" />
       </label>
       <label>
-        <input type="file" name="image_url" />
+        <input required type="file" name="image_url" />
       </label>
       <button type="submit">Add Item</button>
       {message && <p>{message}</p>}

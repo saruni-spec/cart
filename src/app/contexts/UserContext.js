@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 import { addFormToDatabase } from "../myFunctions/funtions";
 
 const UserContext = createContext();
@@ -10,10 +10,11 @@ export const UserProvider = ({ children }) => {
 
   const signIn = async (data, route) => {
     // Your sign in logic here
-    const newToken = await addFormToDatabase(data, route);
-    setToken(newToken.DataFetched);
-    localStorage.setItem("token", newToken.DataFetched);
-    return newToken.message;
+    const results = await addFormToDatabase(data, route);
+    const newToken = results.DataFetched;
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
+    return results;
   };
 
   const signOut = () => {
@@ -22,8 +23,19 @@ export const UserProvider = ({ children }) => {
     localStorage.removeItem("token");
   };
 
+  const checkToken = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setToken(token);
+    }
+  };
+
+  useEffect(() => {
+    checkToken();
+  }, []);
+
   return (
-    <UserContext.Provider value={{ user, token, signIn, signOut }}>
+    <UserContext.Provider value={{ user, token, signIn, signOut, checkToken }}>
       {children}
     </UserContext.Provider>
   );

@@ -57,18 +57,45 @@ export async function POST(req) {
     const body = await req.json();
     const { item_id, shop_id, quantity, price } = body;
 
-    const query = `
-      INSERT INTO inventory (item_id,shop_Id,inventory_quantity,price) 
-      VALUES ($1, $2, $3,$4) 
-      RETURNING *
+    // Check if the item already exists in the database
+    const checkQuery = `
+      SELECT * 
+      FROM inventory
+      WHERE item_id = $1 AND shop_id = $2
     `;
-    const values = [item_id, shop_id, quantity, price];
+    const checkValues = [item_id, shop_id];
+    const { rows: existingItem } = await pool.query(checkQuery, checkValues);
 
-    const { rows } = await pool.query(query, values);
-    return NextResponse.json(
-      { message: "Inventory Updated", DataFetched: rows[0] },
-      { status: 201 }
-    );
+    if (existingItem.length > 0) {
+      // If the item already exists, update the existing record
+      const updateQuery = `
+        UPDATE inventory
+        SET inventory_quantity = $3, price = $4
+        WHERE item_id = $1 AND shop_id = $2
+        RETURNING *
+      `;
+      const updateValues = [item_id, shop_id, quantity, price];
+      const { rows } = await pool.query(updateQuery, updateValues);
+
+      return NextResponse.json(
+        { message: "Inventory Updated", DataFetched: rows[0] },
+        { status: 201 }
+      );
+    } else {
+      // If the item doesn't exist, insert a new record
+      const insertQuery = `
+        INSERT INTO inventory (item_id, shop_Id, inventory_quantity, price)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+      `;
+      const insertValues = [item_id, shop_id, quantity, price];
+      const { rows } = await pool.query(insertQuery, insertValues);
+
+      return NextResponse.json(
+        { message: "Inventory Updated", DataFetched: rows[0] },
+        { status: 201 }
+      );
+    }
   } catch (error) {
     console.error("Error adding item to inventory:", error);
     return NextResponse.json(

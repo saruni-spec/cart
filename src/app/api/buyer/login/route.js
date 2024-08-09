@@ -14,7 +14,7 @@ export async function POST(req, res) {
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { message: "Invalid email or password" },
+        { message: "Invalid email or password", DataFetched: null },
         { status: 401 }
       );
     }
@@ -26,7 +26,7 @@ export async function POST(req, res) {
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { message: "Invalid email or password" },
+        { message: "Invalid email or password", DataFetched: null },
         { status: 401 }
       );
     }
@@ -47,6 +47,7 @@ export async function POST(req, res) {
       {
         error: "Error logging in",
         message: "Error Logging in,Please Try Again",
+        DataFetched: null,
       },
       { status: 500 }
     );

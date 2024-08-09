@@ -1,39 +1,53 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { useCart } from "../contexts/CartContext";
 import { useUser } from "../contexts/UserContext";
 import SignInComponent from "../components/SignInComponent";
 
+import { useRouter } from "next/navigation";
+
 const CheckOut = () => {
-  const { cart } = useCart();
-  const { token } = useUser();
+  const { cart, clearCart } = useCart();
+  const { token, signOut } = useUser();
+
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    clearCart();
+    signOut();
+    router.push("/", { scroll: false });
+  };
 
   return (
     <>
+      <button onClick={handleSignOut}>Log Out</button>
       {token ? (
         <div>
-          <ul>
-            {cart.length > 0 ? (
-              cart.map((item) => (
-                <li key={item.cart_id}>
-                  <p>
-                    {item.name}({item.type})-{item.brand}
-                  </p>
-                  <p>
-                    Size : {item.size}
-                    {item.measurement}
-                  </p>
-                  <p>{item.description}</p>
+          {cart && cart.length > 0 ? (
+            <>
+              <ul>
+                {cart.map((item) => (
+                  <li key={item.item_id}>
+                    <p>
+                      {item.name}({item.type})-{item.brand}
+                    </p>
+                    <p>
+                      Size : {item.size}
+                      {item.measurement}
+                    </p>
+                    <p>{item.description}</p>
 
-                  <p>{item.image_url}</p>
-                  <p>{item.quantity}</p>
-                </li>
-              ))
-            ) : (
-              <>Add items to your Cart</>
-            )}
-          </ul>
-          <button>Pick Up Items</button>
-          <button>Delivery</button>
+                    <p>{item.image_url}</p>
+                    <p>{item.quantity_in_cart}</p>
+                  </li>
+                ))}
+              </ul>
+              <button>Delivery</button>
+              <button>Pick Up</button>
+            </>
+          ) : (
+            <>Add items to your Cart</>
+          )}
         </div>
       ) : (
         <SignInComponent currentPage={"checkout"} />

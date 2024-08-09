@@ -10,10 +10,9 @@ export default function Shop() {
   const shop_id = searchParams.get("shop_id");
   const GETITEMSROUTE = `inventory?shop_id=${shop_id}`;
   const { cart, addToCart } = useCart();
-  console.log(cart, "in cart 1 items");
 
   const { data, isLoading, error } = useQuery(
-    [cart], // Include cart in the query key
+    [cart, shop_id], // Include cart in the query key
     () => fetchItems(cart, GETITEMSROUTE),
     {
       staleTime: 180000,
@@ -65,7 +64,7 @@ async function fetchItems(cart, route) {
   const data = results.DataFetched;
   const message = results.message;
 
-  console.log(cart, "in cart 2 items");
+  console.log(cart, "cart cheking in shop");
   if (cart.length > 0) {
     console.log(cart, "we have a cart");
     const cartItemsSet = new Set(cart.map((item) => item.item_id));

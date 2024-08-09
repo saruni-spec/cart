@@ -55,6 +55,19 @@ export async function updateItemInDatabase(updateData, route) {
   return await response.json();
 }
 
+export async function deleteItemFromDatabase(data, route, token) {
+  const reponse = await fetch(`/api/${route}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  return await reponse.json();
+}
+
 export function debounce(func, timeout) {
   let timer;
   return (...args) => {
@@ -63,4 +76,15 @@ export function debounce(func, timeout) {
       func.apply(this, args);
     }, timeout);
   };
+}
+export async function alterTables(query) {
+  const client = await pool.connect();
+  try {
+    await client.query(query);
+    console.log("Tables altered successfully");
+  } catch (err) {
+    console.error("Error altering tables:", err);
+  } finally {
+    client.release();
+  }
 }
